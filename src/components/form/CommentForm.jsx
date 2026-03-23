@@ -1,0 +1,100 @@
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AlertCircle, Send } from 'lucide-react'
+import { commentSchema } from '../../lib/validationSchema'
+import { CascadeDropdown } from './CascadeDropdown'
+import { CharacterCounter } from './CharacterCounter'
+import { Spinner } from '../ui/Spinner'
+
+export function CommentForm({ onSubmit, isSubmitting }) {
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(commentSchema),
+    defaultValues: {
+      kademe_id: '',
+      sinif_seviyesi_id: '',
+      ders_id: '',
+      yayin_evi: '',
+      kitap_adi: '',
+      yorum: '',
+    },
+  })
+
+  const yorumValue = watch('yorum', '')
+
+  async function handleFormSubmit(values) {
+    await onSubmit(values)
+    reset()
+  }
+
+  return (
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5" noValidate>
+      {/* Cascade: Kademe → Sınıf → Ders */}
+      <div className="p-4 bg-navy-50/50 rounded-xl border border-navy-100">
+        <p className="text-xs font-semibold text-navy-600 uppercase tracking-wider mb-3">Sınıf Bilgileri</p>
+        <CascadeDropdown control={control} setValue={setValue} errors={errors} />
+      </div>
+
+      {/* Yayınevi */}
+      <div>
+        <label className="form-label" htmlFor="yayin_evi">Yayınevi *</label>
+        <input
+          id="yayin_evi"
+          type="text"
+          placeholder="Örn: MEB Yayınları"
+          className={`form-input ${errors.yayin_evi ? 'form-input-error' : ''}`}
+          {...register('yayin_evi')}
+        />
+        {errors.yayin_evi && (
+          <p className="form-error"><AlertCircle size={14} />{errors.yayin_evi.message}</p>
+        )}
+      </div>
+
+      {/* Kitap Adı */}
+      <div>
+        <label className="form-label" htmlFor="kitap_adi">Kitap Adı *</label>
+        <input
+          id="kitap_adi"
+          type="text"
+          placeholder="Örn: 5. Sınıf Matematik Ders Kitabı"
+          className={`form-input ${errors.kitap_adi ? 'form-input-error' : ''}`}
+          {...register('kitap_adi')}
+        />
+        {errors.kitap_adi && (
+          <p className="form-error"><AlertCircle size={14} />{errors.kitap_adi.message}</p>
+        )}
+      </div>
+
+      {/* Yorum */}
+      <div>
+        <label className="form-label" htmlFor="yorum">Değerlendirme Yorumu * <span className="text-gray-400 font-normal">(min. 50 karakter)</span></label>
+        <textarea
+          id="yorum"
+          rows={6}
+          placeholder="Kitap hakkındaki düşüncelerinizi, güçlü ve geliştirilmesi gereken yönlerini detaylı olarak yazınız..."
+          className={`form-input resize-none ${errors.yorum ? 'form-input-error' : ''}`}
+          {...register('yorum')}
+        />
+        <CharacterCounter current={yorumValue.length} max={2000} />
+        {errors.yorum && (
+          <p className="form-error mt-2"><AlertCircle size={14} />{errors.yorum.message}</p>
+        )}
+      </div>
+
+      <button type="submit" className="btn-primary w-full" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <><Spinner size="sm" /> Kaydediliyor...</>
+        ) : (
+          <><Send size={18} /> Yorumu Gönder</>
+        )}
+      </button>
+    </form>
+  )
+}
