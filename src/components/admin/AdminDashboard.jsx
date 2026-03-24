@@ -4,7 +4,10 @@ import { FilterPanel } from './FilterPanel'
 import { DataTable } from './DataTable'
 import { ExportButtons } from './ExportButtons'
 import { Spinner } from '../ui/Spinner'
-import { AlertCircle, RefreshCw, BarChart3 } from 'lucide-react'
+import { AlertCircle, RefreshCw, BarChart3, Trash2 } from 'lucide-react'
+import { EditCommentModal } from '../teacher/EditCommentModal'
+import { useToast } from '../ui/Toast'
+import { Modal } from '../ui/Modal'
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -20,6 +23,10 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
+  const [editingComment, setEditingComment] = useState(null)
+  const [deletingComment, setDeletingComment] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const { showToast } = useToast()
 
   async function fetchAllComments() {
     setLoading(true)
@@ -72,6 +79,49 @@ export function AdminDashboard() {
 
   function resetFilters() {
     setFilters(DEFAULT_FILTERS)
+  }
+
+  async function handleEditSubmit(formData) {
+    setIsSaving(true)
+    try {
+      const { error } = await supabaseAdmin
+        .from('kitap_yorumlari')
+        .update({
+          ...formData,
+          guncelleme_tarihi: new Date().toISOString(),
+        })
+        .eq('id', editingComment.id)
+
+      if (error) throw error
+
+      showToast('Yorum başarıyla güncellendi.', 'success')
+      setEditingComment(null)
+      fetchAllComments()
+    } catch (err) {
+      showToast('Yorum güncellenirken bir hata oluştu.', 'error')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  async function handleDeleteConfirm() {
+    setIsSaving(true)
+    try {
+      const { error } = await supabaseAdmin
+        .from('kitap_yorumlari')
+        .delete()
+        .eq('id', deletingComment.id)
+
+      if (error) throw error
+
+      showToast('Yorum başarıyla silindi.', 'success')
+      setDeletingComment(null)
+      fetchAllComments()
+    } catch (err) {
+      showToast('Yorum silinirken bir hata oluştu.', 'error')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const filteredData = useMemo(() => {
@@ -146,8 +196,58 @@ export function AdminDashboard() {
 
       {/* Table */}
       {!loading && !error && (
-        <DataTable data={filteredData} />
+        <DataTable 
+          data={filteredData} 
+          onEdit={(c) => setEditingComment(c)} 
+          onDelete={(c) => setDeletingComment(c)} 
+        />
       )}
+
+      {/* Edit Modal */}
+      <EditCommentModal
+        isOpen={!!editingComment}
+        onClose={() => setEditingComment(null)}
+        comment={editingComment}
+        onSave={handleEditSubmit}
+        isSaving={isSaving}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal 
+        isOpen={!!deletingComment} 
+        onClose={() => setDeletingComment(null)} 
+        title="Yorumu Sil" 
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-xl border border-red-100 transition-all">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 shrink-0">
+              <Trash2 size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-red-900">Emin misiniz?</p>
+              <p className="text-xs text-red-600">Bu işlem geri alınamaz.</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <button 
+              onClick={() => setDeletingComment(null)} 
+              className="btn-secondary flex-1"
+              disabled={isSaving}
+            >
+              İptal
+            </button>
+            <button 
+              onClick={handleDeleteConfirm} 
+              className="btn-primary bg-red-600 hover:bg-red-700 border-red-600 flex-1"
+              disabled={isSaving}
+            >
+              {isSaving ? 'Siliniyor...' : 'Evet, Sil'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

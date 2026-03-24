@@ -6,7 +6,7 @@ import {
   getSortedRowModel,
   flexRender,
 } from '@tanstack/react-table'
-import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Eye, Edit2, Trash2 } from 'lucide-react'
 import { Modal } from '../ui/Modal'
 
 function formatDate(iso) {
@@ -17,7 +17,7 @@ function formatDate(iso) {
   })
 }
 
-export function DataTable({ data }) {
+export function DataTable({ data, onEdit, onDelete }) {
   const [sorting, setSorting] = useState([{ id: 'olusturma_tarihi', desc: true }])
   const [viewComment, setViewComment] = useState(null)
 
@@ -101,7 +101,30 @@ export function DataTable({ data }) {
       },
       size: 260,
     },
-  ], [])
+    {
+      id: 'actions',
+      header: 'İşlemler',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEdit(row.original)}
+            className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+            title="Düzenle"
+          >
+            <Edit2 size={16} />
+          </button>
+          <button
+            onClick={() => onDelete(row.original)}
+            className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors"
+            title="Sil"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+      size: 100,
+    },
+  ], [onEdit, onDelete])
 
   const table = useReactTable({
     data,
