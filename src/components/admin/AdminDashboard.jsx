@@ -4,10 +4,11 @@ import { FilterPanel } from './FilterPanel'
 import { DataTable } from './DataTable'
 import { ExportButtons } from './ExportButtons'
 import { Spinner } from '../ui/Spinner'
-import { AlertCircle, RefreshCw, BarChart3, Trash2 } from 'lucide-react'
+import { AlertCircle, RefreshCw, BarChart3, Trash2, List, FileText } from 'lucide-react'
 import { EditCommentModal } from '../teacher/EditCommentModal'
 import { useToast } from '../ui/Toast'
 import { Modal } from '../ui/Modal'
+import { ReportsPanel } from './ReportsPanel'
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -16,6 +17,8 @@ const DEFAULT_FILTERS = {
   ders_id: '',
   date_from: '',
   date_to: '',
+  yayin_evi: '',
+  kullanim_puani: '',
 }
 
 export function AdminDashboard() {
@@ -26,6 +29,7 @@ export function AdminDashboard() {
   const [editingComment, setEditingComment] = useState(null)
   const [deletingComment, setDeletingComment] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('list')
   const { showToast } = useToast()
 
   async function fetchAllComments() {
@@ -138,9 +142,19 @@ export function AdminDashboard() {
       if (filters.ders_id && c.ders_id !== Number(filters.ders_id)) return false
       if (filters.date_from && new Date(c.olusturma_tarihi) < new Date(filters.date_from)) return false
       if (filters.date_to && new Date(c.olusturma_tarihi) > new Date(filters.date_to + 'T23:59:59')) return false
+      if (filters.yayin_evi && (c.yayin_evi ?? '').toLowerCase() !== filters.yayin_evi.toLowerCase()) return false
+      if (filters.kullanim_puani && c.kullanim_puani !== Number(filters.kullanim_puani)) return false
       return true
     })
   }, [allComments, filters])
+
+  // Extract unique publishers
+  const uniquePublishers = useMemo(() => {
+    const pubs = allComments.map(c => c.yayin_evi).filter(Boolean)
+    const uniquePubs = [...new Set(pubs.map(p => p.toLowerCase()))]
+    // find original casing for display
+    return uniquePubs.map(lower => pubs.find(p => p.toLowerCase() === lower)).sort((a, b) => a.localeCompare(b, 'tr-TR'))
+  }, [allComments])
 
   // Stats
   const updatedCount = filteredData.filter((c) => !!c.guncelleme_tarihi).length
@@ -177,7 +191,38 @@ export function AdminDashboard() {
       </div>
 
       {/* Filters */}
-      <FilterPanel filters={filters} onChange={handleFilterChange} onReset={resetFilters} />
+      <FilterPanel 
+        filters={filters} 
+        onChange={handleFilterChange} 
+        onReset={resetFilters} 
+        publishers={uniquePublishers}
+      />
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 mb-6 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('list')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'list'
+              ? 'border-navy-600 text-navy-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <List size={18} />
+          Yorum Listesi
+        </button>
+        <button
+          onClick={() => setActiveTab('reports')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'reports'
+              ? 'border-navy-600 text-navy-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <FileText size={18} />
+          Raporlar
+        </button>
+      </div>
 
       {/* Error */}
       {error && (
@@ -194,13 +239,17 @@ export function AdminDashboard() {
         </div>
       )}
 
-      {/* Table */}
-      {!loading && !error && (
+      {/* Content based on Active Tab */}
+      {!loading && !error && activeTab === 'list' && (
         <DataTable 
           data={filteredData} 
           onEdit={(c) => setEditingComment(c)} 
           onDelete={(c) => setDeletingComment(c)} 
         />
+      )}
+
+      {!loading && !error && activeTab === 'reports' && (
+        <ReportsPanel data={filteredData} />
       )}
 
       {/* Edit Modal */}

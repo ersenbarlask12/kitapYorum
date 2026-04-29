@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertCircle, Save } from 'lucide-react'
+import { AlertCircle, Save, Star } from 'lucide-react'
 import { updateCommentSchema } from '../../lib/validationSchema'
 import { CharacterCounter } from '../form/CharacterCounter'
 import { Spinner } from '../ui/Spinner'
@@ -12,11 +12,14 @@ export function EditCommentModal({ comment, isOpen, onClose, onSave, isSaving })
     register,
     handleSubmit,
     watch,
+    setValue,
     reset,
     formState: { errors },
   } = useForm({ resolver: zodResolver(updateCommentSchema) })
 
   const yorumValue = watch('yorum', '')
+  const kullanimPuani = watch('kullanim_puani', 0)
+  const [hover, setHover] = useState(0)
 
   useEffect(() => {
     if (comment && isOpen) {
@@ -24,7 +27,9 @@ export function EditCommentModal({ comment, isOpen, onClose, onSave, isSaving })
         yayin_evi: comment.yayin_evi,
         kitap_adi: comment.kitap_adi,
         yorum: comment.yorum,
+        kullanim_puani: comment.kullanim_puani || 0,
       })
+      setHover(0)
     }
   }, [comment, isOpen, reset])
 
@@ -77,6 +82,38 @@ export function EditCommentModal({ comment, isOpen, onClose, onSave, isSaving })
           />
           {errors.kitap_adi && (
             <p className="form-error"><AlertCircle size={14} />{errors.kitap_adi.message}</p>
+          )}
+        </div>
+
+        {/* Kitabı Kullanırım Değerlendirmesi */}
+        <div>
+          <label className="form-label mb-2">Bu kitabı derslerinizde kullanır mısınız? *</label>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setValue('kullanim_puani', star, { shouldValidate: true })}
+                onMouseEnter={() => setHover(star)}
+                onMouseLeave={() => setHover(0)}
+                className="p-1 focus:outline-none transition-transform hover:scale-110"
+              >
+                <Star 
+                  size={28} 
+                  className={`transition-colors ${
+                    (hover || kullanimPuani) >= star 
+                      ? 'text-gold-500 fill-gold-500' 
+                      : 'text-gray-200'
+                  }`} 
+                />
+              </button>
+            ))}
+            <span className="ml-3 text-sm font-medium text-gray-500">
+              {kullanimPuani > 0 ? `${kullanimPuani} Yıldız` : 'Puan Veriniz'}
+            </span>
+          </div>
+          {errors.kullanim_puani && (
+            <p className="form-error mt-2"><AlertCircle size={14} />{errors.kullanim_puani.message}</p>
           )}
         </div>
 

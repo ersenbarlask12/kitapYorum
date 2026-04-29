@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Filter, X, Search } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 
-export function FilterPanel({ filters, onChange, onReset }) {
+export function FilterPanel({ filters, onChange, onReset, publishers = [] }) {
   const [kademeler, setKademeler] = useState([])
   const [siniflar, setSiniflar] = useState([])
   const [dersler, setDersler] = useState([])
@@ -52,9 +52,9 @@ export function FilterPanel({ filters, onChange, onReset }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {/* Metin arama */}
-        <div className="xl:col-span-2 relative">
+        <div className="relative col-span-1 sm:col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
@@ -95,6 +95,26 @@ export function FilterPanel({ filters, onChange, onReset }) {
         >
           <option value="">{filters.sinif_seviyesi_id ? 'Tüm Dersler' : 'Önce sınıf seçin'}</option>
           {dersler.map((d) => <option key={d.id} value={d.id}>{d.ad}</option>)}
+        </select>
+
+        {/* Yayınevi */}
+        <select
+          value={filters.yayin_evi || ''}
+          onChange={(e) => handleChange('yayin_evi', e.target.value)}
+          className="form-select text-sm py-2.5"
+        >
+          <option value="">Tüm Yayınevleri</option>
+          {publishers.map((p, idx) => <option key={idx} value={p}>{p}</option>)}
+        </select>
+
+        {/* Yıldız Puanı */}
+        <select
+          value={filters.kullanim_puani || ''}
+          onChange={(e) => handleChange('kullanim_puani', e.target.value)}
+          className="form-select text-sm py-2.5"
+        >
+          <option value="">Tüm Yıldızlar</option>
+          {[5, 4, 3, 2, 1].map((s) => <option key={s} value={s}>{s} Yıldız</option>)}
         </select>
 
         {/* Tarih */}

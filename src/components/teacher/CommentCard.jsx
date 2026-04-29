@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, BookOpen, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { Pencil, BookOpen, Calendar, Clock, ChevronDown, ChevronUp, Star } from 'lucide-react'
 
 function formatDate(iso) {
   if (!iso) return null
@@ -17,10 +17,24 @@ export function CommentCard({ comment, onEdit }) {
     <div className="card card-hover flex flex-col gap-4 animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          <span className="badge-navy">{comment.kademeler?.ad}</span>
-          <span className="badge-navy">{comment.sinif_seviyeleri?.ad}</span>
-          <span className="badge-gold">{comment.dersler?.ad}</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            <span className="badge-navy">{comment.kademeler?.ad}</span>
+            <span className="badge-navy">{comment.sinif_seviyeleri?.ad}</span>
+            <span className="badge-gold">{comment.dersler?.ad}</span>
+          </div>
+          {comment.kullanim_puani > 0 && (
+            <div className="flex items-center gap-1 mt-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star 
+                  key={star} 
+                  size={14} 
+                  className={star <= comment.kullanim_puani ? 'text-gold-500 fill-gold-500' : 'text-gray-200'} 
+                />
+              ))}
+              <span className="text-xs text-gray-500 ml-1 font-medium">Derste kullanırım</span>
+            </div>
+          )}
         </div>
         <button
           onClick={() => onEdit(comment)}

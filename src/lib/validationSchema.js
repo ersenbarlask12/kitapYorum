@@ -52,6 +52,10 @@ export const commentSchema = z.object({
     .string()
     .min(50, 'Yorum en az 50 karakter olmalıdır')
     .max(2000, 'Yorum en fazla 2000 karakter olabilir'),
+  kullanim_puani: z
+    .number()
+    .min(1, 'Lütfen kitabı kullanma durumunuzu değerlendiriniz (1-5 yıldız)')
+    .max(5, 'Geçersiz puan'),
 })
 
 // Yorum güncelleme şeması (sadece düzenlenebilir alanlar)
@@ -68,4 +72,8 @@ export const updateCommentSchema = z.object({
     .string()
     .min(50, 'Yorum en az 50 karakter olmalıdır')
     .max(2000, 'Yorum en fazla 2000 karakter olabilir'),
+  kullanim_puani: z
+    .number()
+    .min(1, 'Lütfen kitabı kullanma durumunuzu değerlendiriniz (1-5 yıldız)')
+    .max(5, 'Geçersiz puan'),
 })

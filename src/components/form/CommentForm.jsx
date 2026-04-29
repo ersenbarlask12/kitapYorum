@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertCircle, Send } from 'lucide-react'
+import { AlertCircle, Send, Star } from 'lucide-react'
 import { commentSchema } from '../../lib/validationSchema'
 import { CascadeDropdown } from './CascadeDropdown'
 import { CharacterCounter } from './CharacterCounter'
@@ -24,10 +25,13 @@ export function CommentForm({ onSubmit, isSubmitting }) {
       yayin_evi: '',
       kitap_adi: '',
       yorum: '',
+      kullanim_puani: 0,
     },
   })
 
   const yorumValue = watch('yorum', '')
+  const kullanimPuani = watch('kullanim_puani', 0)
+  const [hover, setHover] = useState(0)
 
   async function handleFormSubmit(values) {
     await onSubmit(values)
@@ -69,6 +73,38 @@ export function CommentForm({ onSubmit, isSubmitting }) {
         />
         {errors.kitap_adi && (
           <p className="form-error"><AlertCircle size={14} />{errors.kitap_adi.message}</p>
+        )}
+      </div>
+
+      {/* Kitabı Kullanırım Değerlendirmesi */}
+      <div>
+        <label className="form-label mb-2">Bu kitabı derslerinizde kullanır mısınız? *</label>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setValue('kullanim_puani', star, { shouldValidate: true })}
+              onMouseEnter={() => setHover(star)}
+              onMouseLeave={() => setHover(0)}
+              className="p-1 focus:outline-none transition-transform hover:scale-110"
+            >
+              <Star 
+                size={28} 
+                className={`transition-colors ${
+                  (hover || kullanimPuani) >= star 
+                    ? 'text-gold-500 fill-gold-500' 
+                    : 'text-gray-200'
+                }`} 
+              />
+            </button>
+          ))}
+          <span className="ml-3 text-sm font-medium text-gray-500">
+            {kullanimPuani > 0 ? `${kullanimPuani} Yıldız` : 'Puan Veriniz'}
+          </span>
+        </div>
+        {errors.kullanim_puani && (
+          <p className="form-error mt-2"><AlertCircle size={14} />{errors.kullanim_puani.message}</p>
         )}
       </div>
 
