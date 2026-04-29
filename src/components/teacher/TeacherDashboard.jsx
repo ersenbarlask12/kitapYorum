@@ -9,7 +9,7 @@ import { Spinner } from '../ui/Spinner'
 import { useToast } from '../ui/Toast'
 
 export function TeacherDashboard() {
-  const { comments, loading, error, addComment, updateComment, refetch } = useComments()
+  const { comments, loading, error, addComment, updateComment, deleteComment, refetch } = useComments()
   const toast = useToast()
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingComment, setEditingComment] = useState(null)
@@ -40,6 +40,15 @@ export function TeacherDashboard() {
       toast.error(err.message)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  async function handleDelete(id) {
+    try {
+      await deleteComment(id)
+      toast.success('Yorum başarıyla silindi!')
+    } catch (err) {
+      toast.error(err.message)
     }
   }
 
@@ -109,6 +118,7 @@ export function TeacherDashboard() {
               key={comment.id}
               comment={comment}
               onEdit={setEditingComment}
+              onDelete={handleDelete}
             />
           ))}
         </div>

@@ -2,8 +2,11 @@ import { useMemo } from 'react'
 import { Star, BookOpen, Building2 } from 'lucide-react'
 
 export function ReportsPanel({ data }) {
-  // We only care about data that has a star rating
+  // We only care about data that has a star rating for regular stats
   const ratedData = useMemo(() => data.filter(c => c.kullanim_puani && c.kullanim_puani > 0), [data])
+  
+  // Extract storybook data
+  const storyBookData = useMemo(() => data.filter(c => c.ekstra_form_verisi), [data])
 
   const stats = useMemo(() => {
     const totalVotes = ratedData.length
@@ -51,10 +54,10 @@ export function ReportsPanel({ data }) {
     )
   }
 
-  if (ratedData.length === 0) {
+  if (ratedData.length === 0 && storyBookData.length === 0) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-        <p className="text-gray-500">Bu yorumlarda henüz yıldız değerlendirmesi yapılmamış.</p>
+        <p className="text-gray-500">Bu yorumlarda henüz bir raporlanacak veri (puan veya anket) bulunmuyor.</p>
       </div>
     )
   }
@@ -177,6 +180,56 @@ export function ReportsPanel({ data }) {
           </div>
         </div>
       </div>
+
+      {/* StoryBook Stats */}
+      {storyBookData.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col shadow-sm mt-6">
+          <div className="px-5 py-4 border-b border-gray-200 flex items-center gap-2 bg-gray-50 sticky top-0 z-10">
+            <BookOpen size={18} className="text-navy-600" />
+            <h3 className="font-semibold text-navy-800">Hikaye Setleri Değerlendirmeleri</h3>
+          </div>
+          <div className="p-0 overflow-x-auto overflow-y-auto max-h-[600px] flex-1">
+            <table className="w-full text-left text-sm whitespace-nowrap min-w-max">
+              <thead className="bg-white text-gray-500 text-xs border-b border-gray-200 sticky top-0 shadow-sm z-10">
+                <tr>
+                  <th className="px-5 py-3 font-semibold">Set Adı</th>
+                  <th className="px-5 py-3 font-semibold">Sınıf Seviyesi</th>
+                  <th className="px-5 py-3 font-semibold text-center">Değerlendirme Kitapçığı</th>
+                  <th className="px-5 py-3 font-semibold">Nihai Karar</th>
+                  <th className="px-5 py-3 font-semibold min-w-[300px]">Öğretmen Görüşü</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {storyBookData.map((sb, i) => {
+                  // handle array format of onerilen_sinif_seviyesi
+                  const onerilen = sb.ekstra_form_verisi?.onerilen_sinif_seviyesi;
+                  const onerilenStr = Array.isArray(onerilen) ? onerilen.join(', ') : (onerilen || sb.sinif_seviyeleri?.ad || '-');
+                  
+                  return (
+                    <tr key={i} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 font-medium text-navy-700">{sb.kitap_adi}</td>
+                      <td className="px-5 py-3 text-gray-600">{onerilenStr}</td>
+                      <td className="px-5 py-3 text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          sb.ekstra_form_verisi?.degerlendirme_kitapcigi_var_mi === 'Evet' 
+                            ? 'bg-emerald-50 text-emerald-700' 
+                            : 'bg-red-50 text-red-700'
+                        }`}>
+                          {sb.ekstra_form_verisi?.degerlendirme_kitapcigi_var_mi || '-'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 font-medium text-navy-800">{sb.ekstra_form_verisi?.nihai_karar || '-'}</td>
+                      <td className="px-5 py-3 text-gray-600 whitespace-normal">
+                        <p className="line-clamp-3 text-xs leading-relaxed">{sb.yorum}</p>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

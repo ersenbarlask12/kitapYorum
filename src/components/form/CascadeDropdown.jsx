@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react'
 import { useCascadeData } from '../../hooks/useCascadeData'
 import { Spinner } from '../ui/Spinner'
 
-export function CascadeDropdown({ control, setValue, errors, disabled = false }) {
+export function CascadeDropdown({ control, setValue, errors, disabled = false, onClassSelect }) {
   const {
     kademeler,
     siniflar,
@@ -78,7 +78,13 @@ export function CascadeDropdown({ control, setValue, errors, disabled = false })
                   const val = e.target.value
                   field.onChange(val)
                   setValue('ders_id', '')
-                  if (val) onSinifChange(Number(val))
+                  if (val) {
+                    onSinifChange(Number(val))
+                    const selectedSinif = siniflar.find(s => s.id === Number(val))
+                    if (onClassSelect) onClassSelect(selectedSinif)
+                  } else {
+                    if (onClassSelect) onClassSelect(null)
+                  }
                 }}
               >
                 <option value="">

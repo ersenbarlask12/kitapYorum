@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pencil, BookOpen, Calendar, Clock, ChevronDown, ChevronUp, Star } from 'lucide-react'
+import { Pencil, BookOpen, Calendar, Clock, ChevronDown, ChevronUp, Star, Trash2 } from 'lucide-react'
 
 function formatDate(iso) {
   if (!iso) return null
@@ -8,7 +8,7 @@ function formatDate(iso) {
   })
 }
 
-export function CommentCard({ comment, onEdit }) {
+export function CommentCard({ comment, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false)
   const isLong = comment.yorum?.length > 200
   const isUpdated = !!comment.guncelleme_tarihi
@@ -21,7 +21,7 @@ export function CommentCard({ comment, onEdit }) {
           <div className="flex flex-wrap gap-2">
             <span className="badge-navy">{comment.kademeler?.ad}</span>
             <span className="badge-navy">{comment.sinif_seviyeleri?.ad}</span>
-            <span className="badge-gold">{comment.dersler?.ad}</span>
+            {comment.dersler && <span className="badge-gold">{comment.dersler.ad}</span>}
           </div>
           {comment.kullanim_puani > 0 && (
             <div className="flex items-center gap-1 mt-1">
@@ -36,23 +36,53 @@ export function CommentCard({ comment, onEdit }) {
             </div>
           )}
         </div>
-        <button
-          onClick={() => onEdit(comment)}
-          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-navy-600 bg-navy-50 rounded-lg hover:bg-navy-100 transition-colors"
-          aria-label="Yorumu düzenle"
-        >
-          <Pencil size={14} />
-          Düzenle
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEdit(comment)}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-navy-600 bg-navy-50 rounded-lg hover:bg-navy-100 transition-colors"
+            aria-label="Yorumu düzenle"
+          >
+            <Pencil size={14} />
+            <span className="hidden sm:inline">Düzenle</span>
+          </button>
+          
+          {onDelete && (
+            <button
+              onClick={() => {
+                if(confirm('Bu değerlendirmeyi silmek istediğinize emin misiniz?')) {
+                  onDelete(comment.id)
+                }
+              }}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+              aria-label="Yorumu sil"
+            >
+              <Trash2 size={14} />
+              <span className="hidden sm:inline">Sil</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Kitap bilgisi */}
-      <div className="flex items-start gap-3 p-3 bg-cream rounded-xl">
-        <BookOpen className="text-gold-500 flex-shrink-0 mt-0.5" size={20} />
-        <div>
-          <p className="font-semibold text-gray-900 text-sm">{comment.kitap_adi}</p>
-          <p className="text-gray-500 text-xs mt-0.5">{comment.yayin_evi}</p>
+      <div className="flex flex-col gap-2 p-3 bg-cream rounded-xl">
+        <div className="flex items-start gap-3">
+          <BookOpen className="text-gold-500 flex-shrink-0 mt-0.5" size={20} />
+          <div>
+            <p className="font-semibold text-gray-900 text-sm">{comment.kitap_adi}</p>
+            <p className="text-gray-500 text-xs mt-0.5">{comment.yayin_evi}</p>
+          </div>
         </div>
+        
+        {comment.ekstra_form_verisi && (
+          <div className="mt-2 pt-2 border-t border-gray-200/50 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+            <p><span className="font-medium text-gray-500">Kitap Sayısı:</span> {comment.ekstra_form_verisi.toplam_kitap_sayisi}</p>
+            <p><span className="font-medium text-gray-500">Önerilen:</span> {comment.ekstra_form_verisi.onerilen_sinif_seviyesi}</p>
+            <p className="w-full mt-1">
+              <span className="font-medium text-gray-500">Karar:</span> 
+              <span className="ml-1 font-semibold text-navy-700">{comment.ekstra_form_verisi.nihai_karar}</span>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Yorum metni */}
