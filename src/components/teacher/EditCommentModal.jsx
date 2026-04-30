@@ -8,6 +8,7 @@ import { Spinner } from '../ui/Spinner'
 import { Modal } from '../ui/Modal'
 import { StoryBookFormFields } from '../form/StoryBookFormFields'
 import { FileText } from 'lucide-react'
+import { PublisherSelect } from '../form/PublisherSelect'
 
 export function EditCommentModal({ comment, isOpen, onClose, onSave, isSaving }) {
   const isStoryBook = Boolean(comment?.ekstra_form_verisi)
@@ -18,6 +19,7 @@ export function EditCommentModal({ comment, isOpen, onClose, onSave, isSaving })
     watch,
     setValue,
     reset,
+    control,
     formState: { errors },
   } = useForm({ 
     resolver: async (data, context, options) => {
@@ -80,23 +82,12 @@ export function EditCommentModal({ comment, isOpen, onClose, onSave, isSaving })
                 <FileText className="text-gold-500" size={18} />
                 <span className="text-sm font-medium text-gold-600">Hikaye Seti Modu Aktif</span>
              </div>
-            <StoryBookFormFields register={register} errors={errors} watch={watch} setValue={setValue} />
+            <StoryBookFormFields register={register} errors={errors} watch={watch} setValue={setValue} control={control} />
           </div>
         ) : (
           <>
             {/* Yayınevi */}
-            <div>
-              <label className="form-label" htmlFor="edit_yayin_evi">Yayınevi *</label>
-              <input
-                id="edit_yayin_evi"
-                type="text"
-                className={`form-input ${errors.yayin_evi ? 'form-input-error' : ''}`}
-                {...register('yayin_evi')}
-              />
-              {errors.yayin_evi && (
-                <p className="form-error"><AlertCircle size={14} />{errors.yayin_evi.message}</p>
-              )}
-            </div>
+            <PublisherSelect control={control} errors={errors} />
 
             {/* Kitap Adı */}
             <div>

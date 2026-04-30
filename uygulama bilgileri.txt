@@ -1,0 +1,5 @@
+https://kitapyorum.netlify.app/
+supabase=ersenbarlask12@gmail.com
+https://github.com/ersenbarlask12/kitapYorum.git
+github=ersenbarlask12@gmail.com
+netlify=ersenbarlask12@gmail.com

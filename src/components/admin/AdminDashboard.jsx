@@ -9,6 +9,8 @@ import { EditCommentModal } from '../teacher/EditCommentModal'
 import { useToast } from '../ui/Toast'
 import { Modal } from '../ui/Modal'
 import { ReportsPanel } from './ReportsPanel'
+import { PublisherMergePanel } from './PublisherMergePanel'
+import { Merge } from 'lucide-react'
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -222,6 +224,17 @@ export function AdminDashboard() {
           <FileText size={18} />
           Raporlar
         </button>
+        <button
+          onClick={() => setActiveTab('merge')}
+          className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'merge'
+              ? 'border-navy-600 text-navy-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <Merge size={18} />
+          Yayınevi Birleştirme
+        </button>
       </div>
 
       {/* Error */}
@@ -250,6 +263,10 @@ export function AdminDashboard() {
 
       {!loading && !error && activeTab === 'reports' && (
         <ReportsPanel data={filteredData} />
+      )}
+
+      {!loading && !error && activeTab === 'merge' && (
+        <PublisherMergePanel allComments={allComments} onMergeSuccess={fetchAllComments} />
       )}
 
       {/* Edit Modal */}

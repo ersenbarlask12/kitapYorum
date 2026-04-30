@@ -1,7 +1,8 @@
 import { AlertCircle } from 'lucide-react'
 import { CharacterCounter } from './CharacterCounter'
+import { PublisherSelect } from './PublisherSelect'
 
-export function StoryBookFormFields({ register, errors, watch }) {
+export function StoryBookFormFields({ register, errors, watch, setValue, control }) {
   const yorumValue = watch('yorum', '')
 
   const akademikKriterler = [
@@ -58,15 +59,7 @@ export function StoryBookFormFields({ register, errors, watch }) {
             {errors.kitap_adi && <p className="form-error"><AlertCircle size={14} />{errors.kitap_adi.message}</p>}
           </div>
           <div>
-            <label className="form-label" htmlFor="yayin_evi">Yayınevi *</label>
-            <input
-              id="yayin_evi"
-              type="text"
-              placeholder="Örn: ABC Yayınları"
-              className={`form-input ${errors.yayin_evi ? 'form-input-error' : ''}`}
-              {...register('yayin_evi')}
-            />
-            {errors.yayin_evi && <p className="form-error"><AlertCircle size={14} />{errors.yayin_evi.message}</p>}
+            <PublisherSelect control={control} errors={errors} name="yayin_evi" />
           </div>
           <div>
             <label className="form-label" htmlFor="toplam_kitap_sayisi">Toplam Kitap Sayısı *</label>

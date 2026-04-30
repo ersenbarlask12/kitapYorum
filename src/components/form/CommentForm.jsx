@@ -7,6 +7,7 @@ import { CascadeDropdown } from './CascadeDropdown'
 import { CharacterCounter } from './CharacterCounter'
 import { Spinner } from '../ui/Spinner'
 import { StoryBookFormFields } from './StoryBookFormFields'
+import { PublisherSelect } from './PublisherSelect'
 
 export function CommentForm({ onSubmit, isSubmitting }) {
   const [isStoryBook, setIsStoryBook] = useState(false)
@@ -98,23 +99,11 @@ export function CommentForm({ onSubmit, isSubmitting }) {
       </div>
 
       {isStoryBook ? (
-        <StoryBookFormFields register={register} errors={errors} watch={watch} setValue={setValue} />
+        <StoryBookFormFields register={register} errors={errors} watch={watch} setValue={setValue} control={control} />
       ) : (
         <>
           {/* Yayınevi */}
-          <div>
-            <label className="form-label" htmlFor="yayin_evi">Yayınevi *</label>
-            <input
-              id="yayin_evi"
-              type="text"
-              placeholder="Örn: MEB Yayınları"
-              className={`form-input ${errors.yayin_evi ? 'form-input-error' : ''}`}
-              {...register('yayin_evi')}
-            />
-            {errors.yayin_evi && (
-              <p className="form-error"><AlertCircle size={14} />{errors.yayin_evi.message}</p>
-            )}
-          </div>
+          <PublisherSelect control={control} errors={errors} />
 
           {/* Kitap Adı */}
           <div>
