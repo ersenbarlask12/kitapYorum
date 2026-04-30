@@ -12,14 +12,17 @@ export function PublisherMergePanel({ allComments, onMergeSuccess }) {
 
   // Calculate publisher stats
   const publisherStats = useMemo(() => {
-    const stats = {}
+    const groups = {}
     allComments.forEach(c => {
       if (!c.yayin_evi) return
       const pub = c.yayin_evi.trim()
-      if (!stats[pub]) stats[pub] = 0
-      stats[pub]++
+      if (!groups[pub]) groups[pub] = { count: 0, exactStrings: new Set() }
+      groups[pub].count++
+      groups[pub].exactStrings.add(c.yayin_evi)
     })
-    return Object.entries(stats).map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'))
+    return Object.entries(groups)
+      .map(([name, data]) => ({ name, count: data.count, exactStrings: Array.from(data.exactStrings) }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'tr-TR'))
   }, [allComments])
 
   function handleToggleSource(name) {
@@ -42,11 +45,18 @@ export function PublisherMergePanel({ allComments, onMergeSuccess }) {
 
     setIsMerging(true)
     try {
-      // Update the comments in DB
+      // Collect all exact strings from the selected trimmed names
+      const exactStringsToUpdate = []
+      selectedSources.forEach(src => {
+        const group = publisherStats.find(g => g.name === src)
+        if (group) exactStringsToUpdate.push(...group.exactStrings)
+      })
+
+      // Update the comments in DB using exact original strings
       const { error } = await supabaseAdmin
         .from('kitap_yorumlari')
         .update({ yayin_evi: targetPublisher.trim() })
-        .in('yayin_evi', selectedSources)
+        .in('yayin_evi', exactStringsToUpdate)
 
       if (error) throw error
 

@@ -152,10 +152,10 @@ export function AdminDashboard() {
 
   // Extract unique publishers
   const uniquePublishers = useMemo(() => {
-    const pubs = allComments.map(c => c.yayin_evi).filter(Boolean)
-    const uniquePubs = [...new Set(pubs.map(p => p.toLowerCase()))]
+    const pubs = allComments.map(c => c.yayin_evi?.trim()).filter(Boolean)
+    const uniquePubs = [...new Set(pubs.map(p => p.toLocaleLowerCase('tr-TR')))]
     // find original casing for display
-    return uniquePubs.map(lower => pubs.find(p => p.toLowerCase() === lower)).sort((a, b) => a.localeCompare(b, 'tr-TR'))
+    return uniquePubs.map(lower => pubs.find(p => p.toLocaleLowerCase('tr-TR') === lower)).sort((a, b) => a.localeCompare(b, 'tr-TR'))
   }, [allComments])
 
   // Stats
