@@ -8,6 +8,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useAuthStore } from '../store/authStore'
 import { useToast } from '../components/ui/Toast'
 import { Spinner } from '../components/ui/Spinner'
+import { Modal } from '../components/ui/Modal'
+import { supabase } from '../lib/supabase'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -17,6 +19,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lockCountdown, setLockCountdown] = useState(0)
+
+  // Forgot password states
+  const [showForgotModal, setShowForgotModal] = useState(false)
+  const [forgotTc, setForgotTc] = useState('')
+  const [isSendingRequest, setIsSendingRequest] = useState(false)
 
   const {
     register,
@@ -52,6 +59,37 @@ export default function LoginPage() {
       toast.error(err.message)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function handleForgotPassword(e) {
+    e.preventDefault()
+    if (forgotTc.length !== 11) {
+      toast.error('Lütfen 11 haneli geçerli bir TC Kimlik No giriniz.')
+      return
+    }
+
+    setIsSendingRequest(true)
+    try {
+      const { error } = await supabase
+        .from('sifre_sifirlama_talepleri')
+        .insert({ tc_kimlik_no: forgotTc })
+      
+      if (error) {
+        if (error.code === '42P01') {
+          // Table doesn't exist error handling
+          throw new Error('Sistem henüz bu özelliğe hazır değil. Lütfen yöneticinizle iletişime geçin.')
+        }
+        throw error
+      }
+      
+      toast.success('Şifre sıfırlama talebiniz sistem yöneticisine başarıyla iletildi.')
+      setShowForgotModal(false)
+      setForgotTc('')
+    } catch (err) {
+      toast.error(err.message || 'Talebiniz iletilemedi.')
+    } finally {
+      setIsSendingRequest(false)
     }
   }
 
@@ -136,17 +174,28 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* Beni Hatırla */}
-            <div className="flex items-center gap-2">
-              <input
-                id="beni_hatirla"
-                type="checkbox"
-                className="w-4 h-4 rounded border-gray-300 text-navy-600 focus:ring-navy-600"
-                {...register('beni_hatirla')}
-              />
-              <label htmlFor="beni_hatirla" className="text-sm text-gray-600 cursor-pointer">
-                Beni Hatırla
-              </label>
+            <div className="flex items-center justify-between">
+              {/* Beni Hatırla */}
+              <div className="flex items-center gap-2">
+                <input
+                  id="beni_hatirla"
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-gray-300 text-navy-600 focus:ring-navy-600"
+                  {...register('beni_hatirla')}
+                />
+                <label htmlFor="beni_hatirla" className="text-sm text-gray-600 cursor-pointer">
+                  Beni Hatırla
+                </label>
+              </div>
+
+              {/* Şifremi Unuttum */}
+              <button 
+                type="button" 
+                onClick={() => setShowForgotModal(true)}
+                className="text-sm font-semibold text-navy-600 hover:text-navy-800 transition-colors"
+              >
+                Şifremi Unuttum
+              </button>
             </div>
 
             <button
@@ -178,6 +227,50 @@ export default function LoginPage() {
           © 2026 Öğretmen Kitap Değerlendirme Sistemi
         </p>
       </div>
+
+      <Modal 
+        isOpen={showForgotModal} 
+        onClose={() => setShowForgotModal(false)}
+        title="Şifre Sıfırlama Talebi"
+        size="sm"
+      >
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Şifrenizi unuttuysanız sistem yöneticisine bildirim gönderebilirsiniz. Lütfen sisteme kayıtlı olduğunuz TC Kimlik Numaranızı girin.
+          </p>
+          <div>
+            <label className="form-label" htmlFor="forgot_tc">TC Kimlik No</label>
+            <input
+              id="forgot_tc"
+              type="text"
+              inputMode="numeric"
+              maxLength={11}
+              placeholder="12345678901"
+              value={forgotTc}
+              onChange={(e) => setForgotTc(e.target.value.replace(/\D/g, ''))}
+              className="form-input"
+              required
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button 
+              type="button" 
+              onClick={() => setShowForgotModal(false)}
+              className="btn-secondary flex-1"
+              disabled={isSendingRequest}
+            >
+              İptal
+            </button>
+            <button 
+              type="submit"
+              className="btn-primary flex-1"
+              disabled={isSendingRequest || forgotTc.length !== 11}
+            >
+              {isSendingRequest ? 'Gönderiliyor...' : 'Yöneticiye Bildir'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }
